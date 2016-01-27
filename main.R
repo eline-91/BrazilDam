@@ -1,5 +1,6 @@
 # Necessary imports
 library(raster)
+library(tools)
 
 # Create data, output and bricks folder if they do not exist yet. The data folder can be filled up with
 # the necessary landsat images by use of the python script: Brazil_dam_breach.py.
@@ -43,18 +44,36 @@ br_b_zoom <- crop_image('LC82170742015284LGN00_br_before', band_names, ext_br_zo
 ### Bento Rodrigues Zoom After ###
 br_a_zoom <- crop_image('LC82170742015316LGN00_br_after', band_names, ext_br_zoom, "data/bricks/br_a_zoom.grd")
 
-brickList <- list(sea_b,sea_a,river_b,river_a,br_b,br_a,br_b_zoom,br_a_zoom)
+brickVector <- c(sea_b,sea_a,river_b,river_a,br_b,br_a,br_b_zoom,br_a_zoom)
+names(brickVector) = c("sea_b", "sea_a", "river_b", "river_a" , "br_b", "br_a", "br_b_zoom", "br_a_zoom")
 filenameList <- list("sea_b.grd","sea_a.grd","river_b.grd","river_a.grd","br_b.grd","br_a.grd","br_b_zoom.grd","br_a_zoom.grd")
 
-for (i in 1:length(brickList)) {
-  filename <- file.path(bricksDir,filenameList[i])
-  mask_clouds(brickList[[i]], band_names, filename)
+for (i in 1:length(brickVector)) {
+  filename <- file.path(bricksDir,filenameList[[i]])
+  mask_clouds(brickVector[[i]], band_names, filename)
 }
 
 # Load all bricks including cloud mask and plot
-for (i in 1:length(brickList)) {
-  filename <- file.path(bricksDir,filenameList[i])
-  brickList[[1]] <- brick(filename)
-  names(brickList[[1]])
-  plot(brickList[[1]]$cloudMask)
+for (i in 1:length(brickVector)) {
+  filename <- file.path(bricksDir,filenameList[[i]])
+  brickVector[[i]] <- brick(filename)
+  plot(brickVector[[i]]$cloudMask)
+}
+
+# Extract the clouds for all image bands and change negative values to NA.
+source('R/preprocessing.R')
+for (i in 1:length(brickVector)) {
+  brick_cFree <- extract_clouds(brickVector[[i]])
+  brick_noNeg <- negative_to_NA(brick_cFree)
+  names(brick_noNeg) <- band_names
+  brickVector[[i]] <- brick_noNeg
+}
+
+# Write the new brick files to disk to be sure not to loose them
+for (i in 1:length(brickVector)) {
+  fn_bare = file_path_sans_ext(filenameList[[i]])
+  fn <- paste(fn_bare, "_cloudFree.grd", sep="")
+  filename <- file.path(bricksDir, fn)
+  print(filename)
+  writeRaster(brickVector[[i]],filename)
 }

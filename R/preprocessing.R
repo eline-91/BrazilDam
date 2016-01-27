@@ -41,7 +41,34 @@ mask_clouds <- function(brick, bandNames, fileName) {
   return(newBrick)
 }
 
+# Function given to us by Loic Dutrieux.
 QA2cloud <- function(x, bitpos=0xC000) {
   cloud <- ifelse(bitAnd(x, bitpos) == bitpos, 1, 0)
   return(cloud)
+}
+
+extract_clouds <- function(brick) {
+  # Extract cloud layer
+  cloudMask <- brick[[9]]
+  # Drop cloud layer
+  stack <- dropLayer(brick, 9)
+  # Perform the operation to remove clouds
+  cloudFree <- overlay(x = stack, y = cloudMask, fun = cloud2NA)
+  return(cloudFree)
+}
+
+# Value replacement function
+cloud2NA <- function(x, y){
+  x[y == 1] <- NA
+  return(x)
+}
+
+negative_to_NA <- function(brick) {
+  newBrick <- calc(x = brick, fun = neg2NA)
+  return(newBrick)
+}
+
+neg2NA <- function(x) {
+  x[x < 0] <- NA
+  return(x)
 }
