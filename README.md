@@ -29,8 +29,8 @@ For this case the SceneIDs are the following
 
   a) Before the disaster Scenes
 
-  # The scens are taken from the month of September and October in order to avoid seasonal change contributing 
-  to our change index as will be described below
+  ##The scens are taken from the month of September and October in order to avoid seasonal change contributing 
+  ##to our change index as will be described below
     1. Bentro Rodrigues (place of incident, Novmber 5) : LC82170742015284LGN00
     2. River Doce (the exact dates of the union of toxic sludge with River Doce are unknown): LC82150732015254LGN00
     3. River Doce dealta (River Doce meets the Atlandtic Ocean, November 25): LC82160742015277LGN00
