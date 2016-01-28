@@ -3,7 +3,7 @@ library(raster)
 # Function that calculates an index of the provided before-after images (bricks) and calculates the change between them.
 # Indexes that can be calculated:
 #     1. 'fe' = Ferrous Mineral Ratio (SWIR/NIR): hightlights iron-bearing minerals
-#     2. 'br' = Brown Index ((NIR-RED)/NIR): highlights browns
+#     2. 'br' = Brown Index ((NIR-RED)/NIR): highlights browns (created by us)
 # Function returns a raster layer
 change <- function(brick_b, brick_a, a, b, func){
 	if (func == 'fe'){

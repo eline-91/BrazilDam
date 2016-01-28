@@ -2,9 +2,11 @@
 library(raster)
 library(tools)
 
-# Create data, output and bricks folder if they do not exist yet. The data folder can be filled up with
+#-------------------------------------------------------------------------------------------------------
+# Create data, output and bricks folder first if they do not exist yet. The data folder can be filled up with
 # the necessary landsat images by use of the python scripts in the PythonCode folder.
 # More information in the ReadMe document in the github repository.
+
 mainDir <- '/home/eline/Documents/University/GeoScripting/BrazilDam'
 dataDir <- 'data'
 bricksDir <- 'data/bricks'
@@ -14,9 +16,13 @@ dirList <- list(dataDir, bricksDir, outputDir)
 for (dir in dirList) {
   dir.create(file.path(mainDir, dir), showWarnings = FALSE)
 }
+#-----------------------------------------------------------------------------------------------------------
+
 
 # Source necessary R scripts
 source('R/preprocessing.R')
+source('R/calc_index.R')
+source('R/save_leaflet.R')
 
 # Extents of the needed areas
 ext_sea <- extent(338265,444828,-2219221,-2123875)
@@ -79,3 +85,69 @@ for (i in 1:length(brickVector)) {
   print(filename)
   writeRaster(brickVector[[i]],filename)
 }
+
+# Initiate new filenamelist with the names of the cloud free and negative values free bricks
+# Also, reset brickVector to save memory.
+fnList_cFree <- list("sea_b_cloudFree.grd","sea_a_cloudFree.grd","river_b_cloudFree.grd","river_a_cloudFree.grd",
+                     "br_b_cloudFree.grd","br_a_cloudFree.grd","br_b_zoom_cloudFree.grd","br_a_zoom_cloudFree.grd")
+brickVector = c()
+
+
+# Load the bricks from memory and put inside the brickVector
+for (i in 1:length(fnList_cFree)) {
+  filename <- file.path(bricksDir,fnList_cFree[[i]])
+  print(filename)
+  bri <- brick(filename)
+  brickVector <- append(brickVector, bri)
+}
+
+# Set the names of the brickVector
+names(brickVector) = c("sea_b", "sea_a", "river_b", "river_a" , "br_b", "br_a", "br_b_zoom", "br_a_zoom")
+
+# In order to make a nicer visualization we decided to make the bento rodrigues zoomed extent
+# even smaller. Therefore we replace the last two brick in the brickVector, with even smaller
+# images.
+closer_extent <- extent(655651.9, 676565.4, -2243369, -2232537)
+for (i in 7:8) {
+  bri <- crop(brickVector[[i]], closer_extent)
+  brickVector[[i]] <- bri
+}
+
+# Initiate new empty vector. This vector will be filled up with the 'change'-raster layers.
+changeVector <- c()
+
+# Calculate the change in the regions: river, sea, and br zoom.
+# 'fe' means that the ferrous mineral ratio will be calculated. 'br' means that the brown index
+# (created by us) will be calculated.
+sea_change <- change(brickVector[[1]], brickVector[[2]], 4, 5, func ='br')
+changeVector <- append(changeVector, sea_change)
+
+river_change <- change(brickVector[[3]],brickVector[[4]], 4, 5, func ='br')
+changeVector <- append(changeVector, river_change)
+
+br_zoom_change <- change(brickVector[[7]], brickVector[[8]], 5, 6, func = 'fe')
+changeVector <- append(changeVector, br_zoom_change)
+
+namesVector <- c("sea_change","river_change","br_zoom_change")
+names(changeVector) <- namesVector
+
+# Plot the change images
+for (i in 1:length(changeVector)) {
+  plot(changeVector[[i]], main = namesVector[[i]])
+}
+
+# Save the change images
+for (i in 1:length(changeVector)) {
+  filename <- paste(namesVector[[i]],'.png',sep="")
+  filepath <- file.path(outputDir,filename)
+  save_change_maps(changeVector[[i]],namesVector[[i]], filepath)
+}
+
+# Visualising the Bento Rodrigues area and saving the leaflet map
+outputFile <- file.path(getwd(),outputDir,"br_map.html")
+marker1 <- list(-43.46294,-20.21015,"Location of the dam breach")
+marker2 <- list(-43.417714,-20.236886,"Village of Bento Rodrigues")
+markers <- list(marker1,marker2)
+plot_leaflet(changeVector[[3]],markers,outputFile)
+
+source('R/mapping.R')
