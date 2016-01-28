@@ -2,7 +2,7 @@
 Hereby we describe step by step procedure to understand the spread of toxic waster sludge that broke following the Samarco Dam,
 breach incident that took place on the November 5, 2015 near a small village called Bento Rodrigues.
 
-The main script for the analysis is performed in R however, initial data procuring and management is done in python
+The main script for the analysis is performed in R however, initial data procuring and management is done in python. There are two main scripts: the full one (Main.R) and (MainShort.R), for the full one all landsat images should be downloaded according to this README. For the short version however, only the landsat images for the Bento Rodrigues area are necessary.
 
 Step 1
 
@@ -31,13 +31,13 @@ For this case the SceneIDs are the following
 
   ##The scenes are taken from the month of September and October in order to avoid seasonal change contributing to our change index
   
-    1. Bentro Rodrigues (place of incident, Novmber 5) : LC82170742015284LGN00
+    1. Bentro Rodrigues (place of incident, November 5) : LC82170742015284LGN00      (Needed for MainShort.R)
     2. River Doce (the exact dates of the union of toxic sludge with River Doce are unknown): LC82150732015254LGN00
     3. River Doce dealta (River Doce meets the Atlandtic Ocean, November 25): LC82160742015277LGN00
   
   b) After the disaster Scenes
   
-    1. Bento Rodrigues (November 12): LC82170742015316LGN00
+    1. Bento Rodrigues (November 12): LC82170742015316LGN00   (Needed for MainShort.R)
     2. River Doce (December 7): LC82150732015341LGN00
     3. River Doce delta (November 30): LC82160742015334LGN00
 - Landsat download directory: the default set directory is "/home/user/landsat"

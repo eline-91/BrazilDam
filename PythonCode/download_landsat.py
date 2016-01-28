@@ -1,9 +1,10 @@
-from os.path import join, exists, getsize
-from homura import download as fetch
 import requests
+import landsat.settings
 from landsat.utils import check_create_folder, url_builder
 from landsat.mixins import VerbosityMixin
-import landsat.settings
+from os.path import join, exists, getsize
+from homura import download as fetch
+
 
 class Downloader(VerbosityMixin):
     """ The downloader class """
@@ -11,10 +12,17 @@ class Downloader(VerbosityMixin):
     print download_dir
     
     def download(self, scenes):
-         self.google = landsat.settings.GOOGLE_STORAGE
-         # Make sure download directory exist
-         # check_create_folder(self.download_dir)
-         for scene in scenes:
+        """Download Function from Google Storage 
+        Args:
+          SceneID {data_tye: List}
+        Retruns:
+          Tarred landsat data files
+        """
+        self.google = landsat.settings.GOOGLE_STORAGE
+         
+         # Check for the validity of SceneID
+        for scene in scenes:
+            # An empty list in accordance to landsat unique ID
             scene_anatomy = {
                  'path': None,
                  'row': None,
@@ -27,19 +35,20 @@ class Downloader(VerbosityMixin):
                      scene_anatomy['sat'] = 'L' + scene[2:3]
             else:
                 raise IncorrectSceneId('Bad List')
-        # Create a folder to download the specific bands into
+            # Create a folder to download tarred landsat Scenes
             path = check_create_folder(self.download_dir)
             filename = scene + '.tar.bz'        
             print path
             print scene_anatomy
+            # Builds the URL to a google storage file
             url = url_builder([self.google,scene_anatomy['sat'], scene_anatomy['path'], scene_anatomy['row'],filename])
             print url
-                 
+            # Downloads and save at the location defined under path    
             fetch(url,path)
-#            self.output('stored at %s' path, normal=True, color='green', indent=1)             
+     
             return path
             
 if __name__ == '__main__':
 
     d = Downloader()
-    print "-----"
+    print "--Download Done!---"
