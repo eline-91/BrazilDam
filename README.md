@@ -29,7 +29,7 @@ For this case the SceneIDs are the following
 
   a) Before the disaster Scenes
 
-  ##The scens are taken from the month of September and October in order to avoid seasonal change contributing to our change index
+  ##The scenes are taken from the month of September and October in order to avoid seasonal change contributing to our change index
   
     1. Bentro Rodrigues (place of incident, Novmber 5) : LC82170742015284LGN00
     2. River Doce (the exact dates of the union of toxic sludge with River Doce are unknown): LC82150732015254LGN00
@@ -49,8 +49,23 @@ Step 3
 Once the data is procured we will begin the analysis for which user has to move back to 'Main.R' and run rest of the script.
 
 #Easy to Copy Scene IDs
-
+LC82170742015284LGN00
+LC82170742015316LGN00
+LC82160732015277LGN00
+LC82160732015341LGN00
+LC82150742015254LGN00
+LC82150742015334LGN00
 
 #Landsat-utils installation
 
+$: sudo apt-get update
+$: sudo apt-get install python-pip python-numpy python-scipy libgdal-dev libatlas-base-dev gfortran libfreetype6-dev
+$: sudo pip install python.h
+$: sudo apt-get  update; sudo apt-get install  python-dev -y
+$: pip install landsat-util
+$: pip install homura
+$: pip install requirements
+
+installing homura needs python.h 
+http://stackoverflow.com/questions/8282231/ubuntu-i-have-python-but-gcc-cant-find-python-h
 
