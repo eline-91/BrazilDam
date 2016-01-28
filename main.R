@@ -151,3 +151,6 @@ markers <- list(marker1,marker2)
 plot_leaflet(changeVector[[3]],markers,outputFile)
 
 source('R/mapping.R')
+# Plot the before and after false-colour images
+plotRGB(brickVector[[7]],6,5,4)
+plotRGB(brickVector[[8]],6,5,4)
