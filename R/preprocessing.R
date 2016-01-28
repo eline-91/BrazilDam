@@ -5,8 +5,9 @@ library(bitops)
 
 # Preprocessing functions
 
-crop_image <- function(foldername, bandNames, extent, filename) {
-  # Path to the folder where the data is located
+# This function crops the images to the desired extent. It also removes bands that are not needed.
+crop_image <- function(foldername, bandNames, extent) {
+  # Path to the folder where the landsat data is located
   folderpath <- file.path('data',foldername)
   
   # Band 8 has a different extent and can therefore not be used. In order to  keep the file (just in 
@@ -18,12 +19,12 @@ crop_image <- function(foldername, bandNames, extent, filename) {
   }
   
   # Listing landsatPath and cloudmaskPath and appending both together. We do not take all the bands
-  # because we do not need band 9, 10, 11 and the BQA band.
+  # because we do not need band 9, 10, and 11.
   landsatPath <- list.files(folderpath, pattern = glob2rx('LC8*.TIF'), full.names = TRUE)[3:11]
   
   # Making the stack and giving them proper names
   landsat_stack <- stack(landsatPath)
-  landsat_stack <- dropLayer(landsat_stack, 8)
+  landsat_stack <- dropLayer(landsat_stack, 8) # Remove band 9
   names(landsat_stack) <- bandNames
 
   # Crop the image to the desired extent
@@ -31,6 +32,8 @@ crop_image <- function(foldername, bandNames, extent, filename) {
   return(brick)
 }
 
+# This function calculates a cloud Mask from the BQA band and adds it to the brick. 
+# It also writes the brick to disk.
 mask_clouds <- function(brick, bandNames, fileName) {
   print(fileName)
   cMask <- calc(x=brick$BQA, fun=QA2cloud)
@@ -41,12 +44,13 @@ mask_clouds <- function(brick, bandNames, fileName) {
   return(newBrick)
 }
 
-# Function given to us by Loic Dutrieux.
+# Function given to us by Loic Dutrieux. Used in the mask_clouds function.
 QA2cloud <- function(x, bitpos=0xC000) {
   cloud <- ifelse(bitAnd(x, bitpos) == bitpos, 1, 0)
   return(cloud)
 }
 
+# This function extracts the clouds from all layers in a brick.
 extract_clouds <- function(brick) {
   # Extract cloud layer
   cloudMask <- brick[[9]]
@@ -57,17 +61,19 @@ extract_clouds <- function(brick) {
   return(cloudFree)
 }
 
-# Value replacement function
+# Value replacement function to extract clouds. Used in the extract_clouds function.
 cloud2NA <- function(x, y){
   x[y == 1] <- NA
   return(x)
 }
 
+# Function to remove negative values in the layers of the brick and changes them to NA.
 negative_to_NA <- function(brick) {
   newBrick <- calc(x = brick, fun = neg2NA)
   return(newBrick)
 }
 
+# Value replacement function to change negative values to NA. Used in the negative_to_NA function.
 neg2NA <- function(x) {
   x[x < 0] <- NA
   return(x)

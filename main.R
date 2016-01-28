@@ -3,7 +3,8 @@ library(raster)
 library(tools)
 
 # Create data, output and bricks folder if they do not exist yet. The data folder can be filled up with
-# the necessary landsat images by use of the python script: Brazil_dam_breach.py.
+# the necessary landsat images by use of the python scripts in the PythonCode folder.
+# More information in the ReadMe document in the github repository.
 mainDir <- '/home/eline/Documents/University/GeoScripting/BrazilDam'
 dataDir <- 'data'
 bricksDir <- 'data/bricks'
@@ -24,12 +25,10 @@ ext_br <- extent(635305, 780405, -2259121,-2138545)
 ext_br_zoom <- extent(648078,731153,-2258406,-2221620)
 band_names <- c("band1", "band2", "band3", "band4", "band5", "band6" ,"band7", "BQA")
 
+# Make stacks of all landsat images in order to process them
 ### Sea Before ###
-#filename = "data/bricks/sea_b.grd"
 sea_b <- crop_image('LC82150742015254LGN00_sea_before', band_names, ext_sea)
-#mask_clouds(sea_b, band_names, filename)
 ### Sea After ###
-#filename = "data/bricks/sea_a.grd"
 sea_a <- crop_image('LC82150742015334LGN00_sea_after', band_names, ext_sea)
 ### River Before ###
 river_b <- crop_image('LC82160732015277LGN00_river_before', band_names, ext_river, "data/bricks/river_b.grd")
@@ -44,16 +43,20 @@ br_b_zoom <- crop_image('LC82170742015284LGN00_br_before', band_names, ext_br_zo
 ### Bento Rodrigues Zoom After ###
 br_a_zoom <- crop_image('LC82170742015316LGN00_br_after', band_names, ext_br_zoom, "data/bricks/br_a_zoom.grd")
 
+# Put all bricks into a vector, and give it names, so that they can be processed efficiently.
+# Also initiate a list of filenames so that bricks can be easily saved to disk.
 brickVector <- c(sea_b,sea_a,river_b,river_a,br_b,br_a,br_b_zoom,br_a_zoom)
 names(brickVector) = c("sea_b", "sea_a", "river_b", "river_a" , "br_b", "br_a", "br_b_zoom", "br_a_zoom")
 filenameList <- list("sea_b.grd","sea_a.grd","river_b.grd","river_a.grd","br_b.grd","br_a.grd","br_b_zoom.grd","br_a_zoom.grd")
 
+# Make a cloud mask from the BQA layer and save the brick to file. This way the bricks can be easily loaded into workspace again
+# and running time can be saved.
 for (i in 1:length(brickVector)) {
   filename <- file.path(bricksDir,filenameList[[i]])
   mask_clouds(brickVector[[i]], band_names, filename)
 }
 
-# Load all bricks including cloud mask and plot
+# Load all bricks including cloud mask and plot the cloudmask. 0 means no cloud and 1 means cloud.
 for (i in 1:length(brickVector)) {
   filename <- file.path(bricksDir,filenameList[[i]])
   brickVector[[i]] <- brick(filename)
@@ -61,7 +64,6 @@ for (i in 1:length(brickVector)) {
 }
 
 # Extract the clouds for all image bands and change negative values to NA.
-source('R/preprocessing.R')
 for (i in 1:length(brickVector)) {
   brick_cFree <- extract_clouds(brickVector[[i]])
   brick_noNeg <- negative_to_NA(brick_cFree)
@@ -69,7 +71,7 @@ for (i in 1:length(brickVector)) {
   brickVector[[i]] <- brick_noNeg
 }
 
-# Write the new brick files to disk to be sure not to loose them
+# Write the new brick files to disk to be sure not to loose them and save running time.
 for (i in 1:length(brickVector)) {
   fn_bare = file_path_sans_ext(filenameList[[i]])
   fn <- paste(fn_bare, "_cloudFree.grd", sep="")
