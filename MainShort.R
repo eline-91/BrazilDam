@@ -1,3 +1,5 @@
+# This is a version of the main script for just one small extent of the Bento Rodrigues area.
+
 # Necessary imports
 library(raster)
 library(tools)
@@ -26,35 +28,20 @@ source('R/save_leaflet.R')
 source('R/mapping.R')
 
 # Extents of the needed areas
-ext_sea <- extent(338265,444828,-2219221,-2123875)
-ext_river <- extent(204819, 392250, -2177909, -2078672)
-ext_br <- extent(635305, 780405, -2259121,-2138545)
 ext_br_zoom <- extent(648078,731153,-2258406,-2221620)
+e <- extent(655651.9, 676565.4, -2243369, -2232537)
 band_names <- c("band1", "band2", "band3", "band4", "band5", "band6" ,"band7", "BQA")
 
-# Make stacks of all landsat images in order to process them
-### Sea Before ###
-sea_b <- crop_image('LC82150742015254LGN00_sea_before', band_names, ext_sea)
-### Sea After ###
-sea_a <- crop_image('LC82150742015334LGN00_sea_after', band_names, ext_sea)
-### River Before ###
-river_b <- crop_image('LC82160732015277LGN00_river_before', band_names, ext_river)
-### River After
-river_a <- crop_image('LC82160732015341LGN00_river_after', band_names, ext_river)
-### Bento Rodrigues Before ###
-br_b <- crop_image('LC82170742015284LGN00_br_before', band_names, ext_br)
-### Bento Rodrigues After ###
-br_a <- crop_image('LC82170742015316LGN00_br_after',band_names, ext_br)
+brickVector = c()
 ### Bento Rodrigues Zoom Before ###
 br_b_zoom <- crop_image('LC82170742015284LGN00_br_before', band_names, ext_br_zoom)
+brickVector <- append(brickVector,br_b_zoom)
 ### Bento Rodrigues Zoom After ###
 br_a_zoom <- crop_image('LC82170742015316LGN00_br_after', band_names, ext_br_zoom)
+brickVector <- append(brickVector,br_a_zoom)
 
-# Put all bricks into a vector, and give it names, so that they can be processed efficiently.
-# Also initiate a list of filenames so that bricks can be easily saved to disk.
-brickVector <- c(sea_b,sea_a,river_b,river_a,br_b,br_a,br_b_zoom,br_a_zoom)
-names(brickVector) = c("sea_b", "sea_a", "river_b", "river_a" , "br_b", "br_a", "br_b_zoom", "br_a_zoom")
-filenameList <- list("sea_b.grd","sea_a.grd","river_b.grd","river_a.grd","br_b.grd","br_a.grd","br_b_zoom.grd","br_a_zoom.grd")
+names(brickVector) = c("br_zoom_before", "br_zoom_after")
+filenameList <- list("br_zoom_before.grd","br_zoom_after.grd")
 
 # Make a cloud mask from the BQA layer and save the brick to file. This way the bricks can be easily loaded into workspace again
 # and running time can be saved.
@@ -89,10 +76,8 @@ for (i in 1:length(brickVector)) {
 
 # Initiate new filenamelist with the names of the cloud free and negative values free bricks
 # Also, reset brickVector to save memory.
-fnList_cFree <- list("sea_b_cloudFree.grd","sea_a_cloudFree.grd","river_b_cloudFree.grd","river_a_cloudFree.grd",
-                     "br_b_cloudFree.grd","br_a_cloudFree.grd","br_b_zoom_cloudFree.grd","br_a_zoom_cloudFree.grd")
+fnList_cFree <- list("br_b_zoom_cloudFree.grd","br_a_zoom_cloudFree.grd")
 brickVector = c()
-
 
 # Load the bricks from memory and put inside the brickVector
 for (i in 1:length(fnList_cFree)) {
@@ -103,54 +88,35 @@ for (i in 1:length(fnList_cFree)) {
 }
 
 # Set the names of the brickVector
-names(brickVector) = c("sea_b", "sea_a", "river_b", "river_a" , "br_b", "br_a", "br_b_zoom", "br_a_zoom")
+names(brickVector) = c("br_b_zoom", "br_a_zoom")
 
 # In order to make a nicer visualization we decided to make the bento rodrigues zoomed extent
 # even smaller. Therefore we replace the last two brick in the brickVector, with even smaller
 # images.
-closer_extent <- extent(655651.9, 676565.4, -2243369, -2232537)
-for (i in 7:8) {
-  bri <- crop(brickVector[[i]], closer_extent)
+for (i in 1:2) {
+  bri <- crop(brickVector[[i]], e)
   brickVector[[i]] <- bri
 }
 
-# Initiate new empty vector. This vector will be filled up with the 'change'-raster layers.
-changeVector <- c()
-
 # Calculate the change in the regions: river, sea, and br zoom.
-# 'fe' means that the ferrous mineral ratio will be calculated. 'br' means that the brown index
-# (created by us) will be calculated.
-sea_change <- change(brickVector[[1]], brickVector[[2]], 4, 5, func ='br')
-changeVector <- append(changeVector, sea_change)
+# 'fe' means that the ferrous mineral ratio will be calculated.
+br_zoom_change <- change(brickVector[[1]], brickVector[[2]], 5, 6, func = 'fe')
 
-river_change <- change(brickVector[[3]],brickVector[[4]], 4, 5, func ='br')
-changeVector <- append(changeVector, river_change)
+# Plot the change image
+plot(br_zoom_change, main = "The change in Ferrous Mineral Ratio")
 
-br_zoom_change <- change(brickVector[[7]], brickVector[[8]], 5, 6, func = 'fe')
-changeVector <- append(changeVector, br_zoom_change)
-
-namesVector <- c("sea_change","river_change","br_zoom_change")
-names(changeVector) <- namesVector
-
-# Plot the change images
-for (i in 1:length(changeVector)) {
-  plot(changeVector[[i]], main = namesVector[[i]])
-}
-
-# Save the change images
-for (i in 1:length(changeVector)) {
-  filename <- paste(namesVector[[i]],'.png',sep="")
-  filepath <- file.path(outputDir,filename)
-  save_change_maps(changeVector[[i]],namesVector[[i]], filepath)
-}
+# Save plot
+filename <- "ferrous_change_br.png"
+filepath <- file.path(outputDir,filename)
+save_change_maps(br_zoom_change,"The change in Ferrous Mineral Ratio", filepath)
 
 # Visualising the Bento Rodrigues area and saving the leaflet map
-outputFile <- file.path(getwd(),outputDir,"br_map.html")
+outputFile <- file.path(getwd(),outputDir,"Bento_Rodrigues_Disaster.html")
 marker1 <- list(-43.46294,-20.21015,"Location of the dam breach")
 marker2 <- list(-43.417714,-20.236886,"Village of Bento Rodrigues")
 markers <- list(marker1,marker2)
-plot_leaflet(changeVector[[3]],markers,outputFile)
+plot_leaflet(br_zoom_change,markers,outputFile)
 
 # Plot the before and after false-colour images
-plotRGB(brickVector[[7]],6,5,4)
-plotRGB(brickVector[[8]],6,5,4)
+plotRGB(brickVector[[1]],6,5,4)  # Before
+plotRGB(brickVector[[2]],6,5,4)  # After
