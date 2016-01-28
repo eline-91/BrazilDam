@@ -43,7 +43,7 @@ For this case the SceneIDs are the following
 - Landsat download directory: the default set directory is "/home/user/landsat"
 
 - After the download is complete or in case the user already have downlaoded data, the function untars the files
-  Enter the data folder to save the untar files. Here please enter the dataDir from the 'Main.R' script.
+  Enter the data folder to save the untar files. Here please enter the dataDir from the 'Main.R' script ('/home/../git/BrazilDam/data').
 
 Step 3
 Once the data is procured we will begin the analysis for which user has to move back to 'Main.R' and run rest of the script.
@@ -56,15 +56,18 @@ LC82160732015341LGN00
 LC82150742015254LGN00
 LC82150742015334LGN00
 
+recommended editor for python is 'spyder'
+
 #Landsat-utils installation
 
 $: sudo apt-get update
 $: sudo apt-get install python-pip python-numpy python-scipy libgdal-dev libatlas-base-dev gfortran libfreetype6-dev
-$: sudo pip install python.h
 $: sudo apt-get  update; sudo apt-get install  python-dev -y
 $: pip install landsat-util
+$: sudo pip install python.h
 $: pip install homura
 $: pip install requirements
+$: pip install termcolor
 
 installing homura needs python.h 
 http://stackoverflow.com/questions/8282231/ubuntu-i-have-python-but-gcc-cant-find-python-h
