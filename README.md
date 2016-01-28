@@ -29,8 +29,8 @@ For this case the SceneIDs are the following
 
   a) Before the disaster Scenes
 
-  ##The scens are taken from the month of September and October in order to avoid seasonal change contributing 
-  ##to our change index as will be described below
+  ##The scens are taken from the month of September and October in order to avoid seasonal change contributing to our change index
+  
     1. Bentro Rodrigues (place of incident, Novmber 5) : LC82170742015284LGN00
     2. River Doce (the exact dates of the union of toxic sludge with River Doce are unknown): LC82150732015254LGN00
     3. River Doce dealta (River Doce meets the Atlandtic Ocean, November 25): LC82160742015277LGN00
@@ -48,9 +48,9 @@ For this case the SceneIDs are the following
 Step 3
 Once the data is procured we will begin the analysis for which user has to move back to 'Main.R' and run rest of the script.
 
-Easy to Copy Scene IDs
+#Easy to Copy Scene IDs
 
 
-Landsat-utils installation
+#Landsat-utils installation
 
 
